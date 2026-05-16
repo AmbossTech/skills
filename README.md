@@ -8,7 +8,7 @@ Home of agent [skills](https://docs.claude.com/en/docs/agents-and-tools/agent-sk
 Install everything in this repo with a single command. The agent will automatically discover skills inside:
 
 ```bash
-npx skills add AmbossTech/amboss-skill
+npx skills add AmbossTech/skills
 ```
 ---
 
