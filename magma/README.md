@@ -20,6 +20,11 @@ npx skills add AmbossTech/amboss-skill --skill magma-liquidity
 
 The skill activates automatically when Claude detects the user wants to buy Lightning liquidity. To verify, in Claude Code run `/skills` — `magma-liquidity` should appear.
 
+## Requirements
+
+- **Node.js >= 18** — the script uses built-in `fetch` and `node:util` `parseArgs`.
+- That's it for end users. The script is written in TypeScript and runs via `tsx`, which `npx` fetches on demand. No `npm install` required.
+
 ## Example Agent Prompts
 
 - "Buy $10 of Lightning liquidity for my node `026165850492521f4ac8abd9bd8088123446d126f648ca35e60f88177dc149ceb2@12.34.56.78:9735`"
@@ -48,6 +53,19 @@ API keys can be generated at https://account.amboss.tech/settings/api-keys.
 | `MAGMA_API_KEY` | No | — | Amboss Magma API key. Falls back to anonymous access if unset. |
 | `MAGMA_GRAPHQL_ENDPOINT` | No | `https://magma.amboss.tech/graphql` | Override the Magma GraphQL endpoint. |
 
+
+## Development
+
+If you're hacking on the skill itself, the `magma/` folder has a `package.json` with type definitions and a typecheck script:
+
+```bash
+cd magma
+npm install
+npm run typecheck       # tsc --noEmit
+npm run buy -- --connection-uri <pubkey> --usd-cents 1000   # run the script
+```
+
+End users running the installed skill don't need this — `npx tsx` handles it on demand.
 
 ## Related
 

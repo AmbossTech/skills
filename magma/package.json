@@ -1,0 +1,16 @@
+{
+  "name": "magma-skill",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Claude skill for buying Lightning Network liquidity via Amboss Magma. Optional dev dependencies for type-checking; end users run the script via npx tsx without installing anything.",
+  "type": "module",
+  "scripts": {
+    "buy": "tsx scripts/buy_liquidity.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

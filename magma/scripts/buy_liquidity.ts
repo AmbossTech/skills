@@ -1,9 +1,12 @@
-#!/usr/bin/env node
+#!/usr/bin/env -S npx -y tsx
 /**
  * Buy inbound Lightning Network liquidity via the Amboss Magma GraphQL API.
  *
- * Uses only Node.js built-in modules — no `npm install` required.
- * Requires Node.js >= 18 (for built-in fetch).
+ * Run with:
+ *   npx -y tsx scripts/buy_liquidity.ts --connection-uri <...> --usd-cents <...>
+ *
+ * Requires Node.js >= 18 (uses built-in fetch).
+ * `tsx` is auto-fetched by npx — no `npm install` needed.
  *
  * Environment variables:
  *   MAGMA_API_KEY            Optional. Amboss Magma API key. If unset,
@@ -38,18 +41,72 @@ const BUY_LIQUIDITY_MUTATION = `
   }
 `;
 
-function emit(payload, exitCode) {
+type ErrorCode =
+  | 'VALIDATION_ERROR'
+  | 'HTTP_ERROR'
+  | 'API_ERROR'
+  | 'NETWORK_ERROR'
+  | 'UNKNOWN_ERROR';
+
+interface SuccessPayload {
+  success: true;
+  lightning_invoice: string;
+}
+
+interface ErrorPayload {
+  success: false;
+  error: {
+    code: ErrorCode;
+    message: string;
+    details?: Record<string, unknown>;
+  };
+}
+
+type Payload = SuccessPayload | ErrorPayload;
+
+interface LiquidityOrderInput {
+  connection_uri: string;
+  usd_cents: string;
+  redirect_url?: string;
+  options: {
+    private: boolean;
+    rails_cluster_only: boolean;
+  };
+}
+
+interface BuyLiquidityResponse {
+  liquidity: {
+    buy: {
+      payment: {
+        lightning_invoice: string;
+      };
+    };
+  };
+}
+
+interface GraphQLResponse<T> {
+  data?: T;
+  errors?: { message: string }[];
+}
+
+function emit(payload: Payload, exitCode: number): never {
   process.stdout.write(JSON.stringify(payload, null, 2) + '\n');
   process.exit(exitCode);
 }
 
-function emitError(code, message, { exitCode = 2, details } = {}) {
-  const payload = { success: false, error: { code, message } };
-  if (details) payload.error.details = details;
-  emit(payload, exitCode);
+function emitError(
+  code: ErrorCode,
+  message: string,
+  options: { exitCode?: number; details?: Record<string, unknown> } = {}
+): never {
+  const { exitCode = 2, details } = options;
+  emit(
+    { success: false, error: { code, message, ...(details ? { details } : {}) } } as ErrorPayload,
+    exitCode
+  );
 }
 
-function validateConnectionUri(uri) {
+function validateConnectionUri(uri: string): void {
   if (!PUBKEY_PATTERN.test(uri)) {
     emitError(
       'VALIDATION_ERROR',
@@ -59,14 +116,14 @@ function validateConnectionUri(uri) {
   }
   if (uri.includes('@')) {
     const portStr = uri.split(':').pop();
-    const port = Number.parseInt(portStr, 10);
+    const port = Number.parseInt(portStr ?? '', 10);
     if (!Number.isInteger(port) || port < 1 || port > 65535) {
       emitError('VALIDATION_ERROR', 'Port must be between 1 and 65535', { exitCode: 1 });
     }
   }
 }
 
-function validateUsdCents(cents) {
+function validateUsdCents(cents: number): void {
   if (!Number.isInteger(cents)) {
     emitError('VALIDATION_ERROR', 'Amount must be a whole number of cents', { exitCode: 1 });
   }
@@ -79,16 +136,24 @@ function validateUsdCents(cents) {
   }
 }
 
-function isRetriable(status, err) {
+function isRetriable(status: number | null, err: unknown): boolean {
   if (status != null && (status >= 500 || status === 429)) return true;
-  if (err && (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT' || err.code === 'ENOTFOUND' || err.code === 'UND_ERR_CONNECT_TIMEOUT')) {
-    return true;
+  if (err && typeof err === 'object' && 'code' in err) {
+    const code = (err as { code: string }).code;
+    if (
+      code === 'ECONNREFUSED' ||
+      code === 'ETIMEDOUT' ||
+      code === 'ENOTFOUND' ||
+      code === 'UND_ERR_CONNECT_TIMEOUT'
+    ) {
+      return true;
+    }
   }
   return false;
 }
 
-function clientErrorMessage(status, bodyText) {
-  const messages = {
+function clientErrorMessage(status: number, bodyText: string): string {
+  const messages: Record<number, string> = {
     401: 'Authentication failed. If you set MAGMA_API_KEY, verify it at https://account.amboss.tech/settings/api-keys. Unset it to use anonymous access.',
     403: 'Access forbidden. Your API key may lack the required permissions.',
     404: 'API endpoint not found. Check MAGMA_GRAPHQL_ENDPOINT.',
@@ -96,9 +161,9 @@ function clientErrorMessage(status, bodyText) {
   };
   if (messages[status]) return messages[status];
   try {
-    const parsed = JSON.parse(bodyText);
-    if (parsed && Array.isArray(parsed.errors) && parsed.errors.length > 0) {
-      return `Request failed: ${parsed.errors[0].message || 'Invalid request'}`;
+    const parsed = JSON.parse(bodyText) as { errors?: { message?: string }[] };
+    if (parsed?.errors?.length) {
+      return `Request failed: ${parsed.errors[0].message ?? 'Invalid request'}`;
     }
   } catch {
     /* ignore */
@@ -106,10 +171,16 @@ function clientErrorMessage(status, bodyText) {
   return `Magma API returned HTTP ${status}`;
 }
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
-async function callApi(endpoint, apiKey, variables, maxRetries = 2) {
-  const headers = {
+async function callApi(
+  endpoint: string,
+  apiKey: string | undefined,
+  variables: { input: LiquidityOrderInput },
+  maxRetries = 2
+): Promise<BuyLiquidityResponse> {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'apollographql-client-name': CLIENT_NAME,
     'apollographql-client-version': CLIENT_VERSION,
@@ -118,7 +189,7 @@ async function callApi(endpoint, apiKey, variables, maxRetries = 2) {
 
   const body = JSON.stringify({ query: BUY_LIQUIDITY_MUTATION, variables });
 
-  let lastErr;
+  let lastErr: unknown;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const response = await fetch(endpoint, { method: 'POST', headers, body });
@@ -132,15 +203,18 @@ async function callApi(endpoint, apiKey, variables, maxRetries = 2) {
           details: { status: response.status },
         });
       }
-      let payload;
+      let payload: GraphQLResponse<BuyLiquidityResponse>;
       try {
-        payload = JSON.parse(text);
+        payload = JSON.parse(text) as GraphQLResponse<BuyLiquidityResponse>;
       } catch {
         emitError('UNKNOWN_ERROR', 'Magma API returned a non-JSON response');
       }
-      if (payload.errors && payload.errors.length > 0) {
-        const msg = payload.errors[0]?.message || 'GraphQL error';
+      if (payload.errors?.length) {
+        const msg = payload.errors[0]?.message ?? 'GraphQL error';
         emitError('API_ERROR', `Magma API rejected the request: ${msg}`);
+      }
+      if (!payload.data) {
+        emitError('UNKNOWN_ERROR', 'Magma API response missing data field');
       }
       return payload.data;
     } catch (err) {
@@ -149,24 +223,26 @@ async function callApi(endpoint, apiKey, variables, maxRetries = 2) {
         await sleep((attempt + 1) * 1000);
         continue;
       }
-      emitError('NETWORK_ERROR', `Could not reach the Magma API: ${err.message || err}`);
+      const msg = err instanceof Error ? err.message : String(err);
+      emitError('NETWORK_ERROR', `Could not reach the Magma API: ${msg}`);
     }
   }
-  emitError('UNKNOWN_ERROR', `Request failed after retries: ${lastErr?.message || lastErr}`);
+  const msg = lastErr instanceof Error ? lastErr.message : String(lastErr);
+  emitError('UNKNOWN_ERROR', `Request failed after retries: ${msg}`);
 }
 
-function printUsageAndExit() {
+function printUsageAndExit(): never {
   process.stderr.write(
-    `Usage: buy_liquidity.mjs --connection-uri <pubkey[@host:port]> --usd-cents <int> ` +
+    `Usage: buy_liquidity.ts --connection-uri <pubkey[@host:port]> --usd-cents <int> ` +
       `[--redirect-url <url>] [--private-channel] [--rails-cluster-only]\n`
   );
   process.exit(1);
 }
 
-async function main() {
-  let parsed;
+async function main(): Promise<void> {
+  let values: Record<string, string | boolean | undefined>;
   try {
-    parsed = parseArgs({
+    ({ values } = parseArgs({
       options: {
         'connection-uri': { type: 'string' },
         'usd-cents': { type: 'string' },
@@ -176,17 +252,17 @@ async function main() {
         help: { type: 'boolean', short: 'h', default: false },
       },
       strict: true,
-    });
+    }));
   } catch (err) {
-    process.stderr.write(`Argument error: ${err.message}\n`);
+    const msg = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`Argument error: ${msg}\n`);
     printUsageAndExit();
   }
 
-  const { values } = parsed;
   if (values.help) printUsageAndExit();
 
-  const connectionUri = values['connection-uri'];
-  const usdCentsStr = values['usd-cents'];
+  const connectionUri = values['connection-uri'] as string | undefined;
+  const usdCentsStr = values['usd-cents'] as string | undefined;
 
   if (!connectionUri || !usdCentsStr) {
     process.stderr.write('Error: --connection-uri and --usd-cents are required\n');
@@ -201,31 +277,33 @@ async function main() {
   validateConnectionUri(connectionUri);
   validateUsdCents(usdCents);
 
-  const endpoint = process.env.MAGMA_GRAPHQL_ENDPOINT || DEFAULT_ENDPOINT;
+  const endpoint = process.env.MAGMA_GRAPHQL_ENDPOINT ?? DEFAULT_ENDPOINT;
   const apiKey = process.env.MAGMA_API_KEY;
 
-  const input = {
+  const input: LiquidityOrderInput = {
     connection_uri: connectionUri,
     usd_cents: String(usdCents),
     options: {
-      private: values['private-channel'],
-      rails_cluster_only: values['rails-cluster-only'],
+      private: Boolean(values['private-channel']),
+      rails_cluster_only: Boolean(values['rails-cluster-only']),
     },
   };
-  if (values['redirect-url']) input.redirect_url = values['redirect-url'];
+  const redirectUrl = values['redirect-url'] as string | undefined;
+  if (redirectUrl) input.redirect_url = redirectUrl;
 
   const data = await callApi(endpoint, apiKey, { input });
 
   const invoice = data?.liquidity?.buy?.payment?.lightning_invoice;
   if (!invoice) {
     emitError('UNKNOWN_ERROR', 'Magma API response missing lightning_invoice', {
-      details: { raw: data },
+      details: { raw: data as unknown as Record<string, unknown> },
     });
   }
 
   emit({ success: true, lightning_invoice: invoice }, 0);
 }
 
-main().catch((err) => {
-  emitError('UNKNOWN_ERROR', err?.message || String(err));
+main().catch((err: unknown) => {
+  const msg = err instanceof Error ? err.message : String(err);
+  emitError('UNKNOWN_ERROR', msg);
 });

@@ -19,10 +19,10 @@ Invoke this skill whenever the user wants to:
 
 ## How to use
 
-The skill exposes a single Node.js script: `scripts/buy_liquidity.mjs`. Run it from the skill directory. Requires Node.js >= 18 (uses built-in `fetch`); no `npm install` needed.
+The skill exposes a single TypeScript script: `scripts/buy_liquidity.ts`. Run it from the skill directory via `tsx` (fetched on demand by `npx` — no `npm install` needed). Requires Node.js >= 18.
 
 ```bash
-node scripts/buy_liquidity.mjs \
+npx -y tsx scripts/buy_liquidity.ts \
   --connection-uri <pubkey or pubkey@host:port> \
   --usd-cents <amount in cents>
 ```
@@ -95,7 +95,7 @@ Claude: I'm about to purchase $10.00 (1000 cents) of inbound Lightning
 
 User: yes
 
-Claude: [runs node scripts/buy_liquidity.mjs --connection-uri 024ae5a5...@12.34.56.78:9735 --usd-cents 1000]
+Claude: [runs npx -y tsx scripts/buy_liquidity.ts --connection-uri 024ae5a5...@12.34.56.78:9735 --usd-cents 1000]
 
 Claude: Here is your Lightning invoice. Pay it with any Lightning wallet
         to complete the purchase. The inbound channel will open once the
