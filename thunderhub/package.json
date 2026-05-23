@@ -1,0 +1,16 @@
+{
+  "name": "thunderhub-skill",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Claude skill for installing and configuring ThunderHub, a Lightning Network node manager for LND and litd nodes. Users run the script via npx tsx without installing anything.",
+  "type": "module",
+  "scripts": {
+    "install-thunderhub": "tsx scripts/install_thunderhub.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
