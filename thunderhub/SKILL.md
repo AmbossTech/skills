@@ -110,7 +110,42 @@ The script will:
 3. Install ThunderHub via your chosen method
 4. Print the access URL and any post-install notes
 
-### Step 6: Present results
+### Step 6 (optional): Auto-provision a new litd node
+
+If the user **does NOT have an existing LND or litd node**, offer to set one up with `--setup-litd`:
+
+```bash
+npx -y tsx scripts/install_thunderhub.ts \
+  --goal litd \
+  --node-type self-hosted \
+  --method docker \
+  --setup-litd
+```
+
+This flag will:
+1. Ask the user for confirmation interactively
+2. Download the latest **litd** binary from GitHub releases (Linux/macOS, x86_64/arm64)
+3. Verify the download with SHA256 and optionally PGP
+4. Install to `~/.lit/bin/`
+5. Generate a **Neutrino-backed** `lit.conf` (light client — no Bitcoin Core needed)
+6. Generate a wallet password to `~/.lnd/wallet_password`
+7. Print instructions to start litd and create the wallet
+8. Then install ThunderHub configured to connect to the new node
+
+**Ask the user for confirmation** before using `--setup-litd`.
+
+After the script runs, the user needs to:
+1. Start litd
+2. Run `lncli --network=mainnet create` using the generated password
+3. Backup their seed words
+4. ThunderHub will be ready to connect once the wallet is created
+
+**When NOT to use `--setup-litd`:**
+- User already has a running LND or litd node → use the normal `--server-url` / `--macaroon-path` flags
+- User wants to connect to a Voltage Cloud node
+- User is on Windows (only Linux and macOS supported)
+
+### Step 7: Present results
 
 On success, tell the user:
 - **URL**: `http://localhost:3000` (or custom port)
@@ -122,8 +157,10 @@ On success, tell the user:
 
 1. **Always start by asking what they want to do** — Normal Lightning management or Trading/Taproot Assets.
 2. **Then ask about hosting** — Self-hosted or Voltage Cloud.
+   - **If they don't have an existing node** → offer to set one up using `--setup-litd` (ask for confirmation first!).
 3. **Ask which installation method** — **Docker** (recommended, simpler) or **Source** (clone and build, requires Node.js v24+).
 4. **Collect the exact paths** to macaroon and TLS cert files. Ask about the OS they're on to guide default paths.
+   - If using `--setup-litd`, skip the macaroon/TLS cert collection — the script handles it.
 5. **Macaroon type by goal**:
    - **LND goal** → ask for an **admin macaroon**
    - **litd goal (Trading/Taproot Assets)** → ask for a **superadmin macaroon**. For Voltage, tell them to generate one from the Voltage Macaroon Bakery. For self-hosted litd, the LND admin.macaroon may work for basic litd, but a superadmin macaroon (with all permissions) is required for full functionality (Taproot Assets, Loop, Pool).
@@ -160,4 +197,4 @@ On success, tell the user:
 - ThunderHub: https://thunderhub.io/
 - Docs: https://docs.thunderhub.io/
 - GitHub: https://github.com/apotdevin/thunderhub
-- Docker Hub: `ghcr.io/apotdevin/thunderhub:latest`
+- Docker Hub: `apotdevin/thunderhub:latest`
