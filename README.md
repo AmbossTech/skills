@@ -13,6 +13,8 @@ npx skills add AmbossTech/skills
 
 ### 🌋 Magma Buy Lightning Liquidity
 
+![Demo of Magma skill in action](./magma/magma-demo.gif)
+
 Purchase inbound Lightning Network liquidity via [Amboss Magma](https://magma.amboss.tech/). Opens a channel to your node and returns a Lightning invoice to pay.
 
 See [`magma/`](./magma/README.md) for details.

@@ -2,28 +2,17 @@
 
 An agent skill for buying inbound Lightning Network liquidity via [Amboss Magma](https://magma.amboss.tech/).
 
-This is the skill-flavored counterpart to [`@ambosstech/magma-mcp`](https://github.com/AmbossTech/magma-mcp) (the MCP server), useful for when an agent wants to buy Lightning liquidity.
-
 ## Installation
 
-This skill ships inside the [`AmbossTech/amboss-skill`](https://github.com/AmbossTech/amboss-skill) repo. Install the whole repo (you'll be prompted to pick which skills to install — magma is one of them):
+This skill ships inside the [`AmbossTech/skills`](https://github.com/AmbossTech/skills) repo. Install the whole repo (you'll be prompted to pick which skills to install — magma is one of them):
 
 ```bash
-npx skills add AmbossTech/amboss-skill
+npx skills add AmbossTech/skills
 ```
 
-Or install just this skill non-interactively:
+The skill activates automatically when Claude detects the user wants to buy Lightning liquidity. To verify, in Claude Code run `/skills` — `magma` should appear.
 
-```bash
-npx skills add AmbossTech/amboss-skill --skill magma-liquidity
-```
-
-The skill activates automatically when Claude detects the user wants to buy Lightning liquidity. To verify, in Claude Code run `/skills` — `magma-liquidity` should appear.
-
-## Requirements
-
-- **Node.js >= 18** — the script uses built-in `fetch` and `node:util` `parseArgs`.
-- That's it for end users. The script is written in TypeScript and runs via `tsx`, which `npx` fetches on demand. No `npm install` required.
+![Example](./magma-demo.gif)
 
 ## Example Agent Prompts
 
@@ -35,6 +24,7 @@ Claude will:
 2. Run the skill's script.
 3. Present the Lightning invoice for you to pay.
 
+<hr>
 
 ## Configuration (Optional)
 
@@ -52,20 +42,6 @@ API keys can be generated at https://account.amboss.tech/settings/api-keys.
 |----------|----------|---------|-------------|
 | `MAGMA_API_KEY` | No | — | Amboss Magma API key. Falls back to anonymous access if unset. |
 | `MAGMA_GRAPHQL_ENDPOINT` | No | `https://magma.amboss.tech/graphql` | Override the Magma GraphQL endpoint. |
-
-
-## Development
-
-If you're hacking on the skill itself, the `magma/` folder has a `package.json` with type definitions and a typecheck script:
-
-```bash
-cd magma
-npm install
-npm run typecheck       # tsc --noEmit
-npm run buy -- --connection-uri <pubkey> --usd-cents 1000   # run the script
-```
-
-End users running the installed skill don't need this — `npx tsx` handles it on demand.
 
 ## Related
 
