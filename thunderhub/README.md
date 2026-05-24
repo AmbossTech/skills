@@ -4,7 +4,7 @@ An agent skill for installing and configuring [ThunderHub](https://thunderhub.io
 
 ## Installation
 
-This skill ships inside the [`AmbossTech/skills`](https://github.com/AmbossTech/skills) repo. Install the whole repo (you'll be prompted to pick which skills to install):
+This skill ships inside the [`AmbossTech/skills`](https://github.com/AmbossTech/skills) repo.
 
 ```bash
 npx skills add AmbossTech/skills
@@ -25,18 +25,13 @@ The skill guides you through a conversational setup:
 
 ## Example Agent Prompts
 
-> "Set up ThunderHub for my LND node on this machine"
-> "I need ThunderHub for my Voltage Cloud litd node with Taproot Assets"
-> "Install ThunderHub from source on my server"
+```bash
+- "Set up ThunderHub for my LND node on this machine"
+- "I need ThunderHub for my Voltage Cloud litd node with Taproot Assets"
+- "Install ThunderHub from source on my server"
+```
 
-Claude will ask about your goal, hosting, preferred method, and credentials, then install and run ThunderHub for you.
-
-## Prerequisites
-
-- A running **LND** or **litd** node (mainnet or testnet)
-- Node.js >= 18 (for running the install script via `npx tsx`)
-- **For Docker method**: Docker installed
-- **For Source method**: Node.js v24+ and git installed
+The agent will ask about your goal, hosting, preferred method, and credentials, then install and run ThunderHub for you.
 
 ## Installation Methods
 
