@@ -20,8 +20,10 @@ See [`magma/`](./magma/README.md) for details.
 
 #### Example Agent Prompts
 
+```bash
 - "Buy $10 of Lightning liquidity for my node `026165850492521f4ac8abd9bd8088123446d126f648ca35e60f88177dc149ceb2@12.34.56.78:9735`"
 - "Open a private inbound channel on Magma for 5000 cents to `026165850492521f4ac8abd9bd8088123446d126f648ca35e60f88177dc149ceb2`"
+```
 
 Agent will present the Lightning invoice for you to pay.
 

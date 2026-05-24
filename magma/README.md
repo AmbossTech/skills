@@ -4,7 +4,7 @@ An agent skill for buying inbound Lightning Network liquidity via [Amboss Magma]
 
 ## Installation
 
-This skill ships inside the [`AmbossTech/skills`](https://github.com/AmbossTech/skills) repo. Install the whole repo (you'll be prompted to pick which skills to install — magma is one of them):
+This skill ships inside the [`AmbossTech/skills`](https://github.com/AmbossTech/skills) repo.
 
 ```bash
 npx skills add AmbossTech/skills
@@ -16,8 +16,10 @@ The skill activates automatically when Claude detects the user wants to buy Ligh
 
 ## Example Agent Prompts
 
+```bash
 - "Buy $10 of Lightning liquidity for my node `026165850492521f4ac8abd9bd8088123446d126f648ca35e60f88177dc149ceb2@12.34.56.78:9735`"
 - "Open a private inbound channel on Magma for 5000 cents to `026165850492521f4ac8abd9bd8088123446d126f648ca35e60f88177dc149ceb2`"
+```
 
 Claude will:
 1. Confirm the amount and node URI back to you.
