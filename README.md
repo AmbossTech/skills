@@ -1,4 +1,4 @@
-# Amboss Skills
+# Skills
 
 Home of agent [skills](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) for [Amboss](https://amboss.tech/). Each top-level folder is an independently installable skill.
 
@@ -8,9 +8,9 @@ Install every skill with a single command and follow the prompts:
 npx skills add AmbossTech/skills
 ```
 
-# Skills
+# Available Skills
 
-## 1. 🌋 Magma Buy Lightning Liquidity
+## 1. Magma Buy Lightning Liquidity 🌋
 
 ![Demo of Magma skill in action](./magma/magma-demo.gif)
 
@@ -27,7 +27,7 @@ See [`magma/`](./magma/README.md) for details.
 
 Agent will present the Lightning invoice for you to pay.
 
-## 2. ⚡ ThunderHub Node Manager
+## 2. ThunderHub Node Manager ⚡
 
 Install and configure [ThunderHub](https://thunderhub.io/) — a web-based Lightning Network node manager for LND and litd nodes. Supports self-hosted and Voltage Cloud nodes, including Taproot Assets management.
 
