@@ -25,7 +25,7 @@
 
 import { parseArgs } from 'node:util';
 import { createInterface } from 'node:readline';
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, writeFileSync, readFileSync, chmodSync, rmSync } from 'node:fs';
 import { homedir, platform, arch } from 'node:os';
 import { join, resolve, basename } from 'node:path';
@@ -120,12 +120,7 @@ function resolvePath(p: string): string {
 }
 
 function generatePassword(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < 32; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
+  return randomBytes(32).toString('base64').slice(0, 32);
 }
 
 function checkDocker(): void {
@@ -157,7 +152,9 @@ function checkNodeVersion(): void {
 function writeFiles(outputDir: string, configPath: string, keyPath: string, yaml: string, masterPassword: string): void {
   mkdirSync(outputDir, { recursive: true });
   writeFileSync(configPath, yaml, 'utf-8');
+  chmodSync(configPath, 0o600);
   writeFileSync(keyPath, masterPassword + '\n', 'utf-8');
+  chmodSync(keyPath, 0o600);
 }
 
 // ---------------------------------------------------------------------------
@@ -423,6 +420,7 @@ function installViaSource(opts: {
   // Copy config into the install directory
   const appConfigPath = join(installDir, 'thubConfig.yaml');
   writeFileSync(appConfigPath, yaml, 'utf-8');
+  chmodSync(appConfigPath, 0o600);
 
   // Determine the start command
   const envPort = port !== 3000 ? `PORT=${port} ` : '';
@@ -653,6 +651,7 @@ async function setupLitdNode(): Promise<LitdNodeInfo> {
   // Generate wallet password
   const walletPassword = generatePassword();
   writeFileSync(walletPasswordPath, walletPassword + '\n');
+  chmodSync(walletPasswordPath, 0o600);
   process.stderr.write(`Wallet password saved to ${walletPasswordPath}\n`);
 
   // Generate lit.conf with neutrino backend
@@ -703,6 +702,7 @@ async function setupLitdNode(): Promise<LitdNodeInfo> {
     'pool-mode=disable',
   ];
   writeFileSync(litConfPath, litConfLines.join('\n') + '\n');
+  chmodSync(litConfPath, 0o600);
   process.stderr.write(`Configuration written to ${litConfPath}\n`);
 
   // Expected macaroon and TLS cert paths after first run
@@ -788,6 +788,11 @@ async function setupLitdNode(): Promise<LitdNodeInfo> {
       if (seedSection) {
         seedMnemonic = seedSection[1].trim().split(/\s+/);
         if (seedMnemonic.length !== 24) seedMnemonic = undefined;
+        // Save seed to disk with restricted permissions
+        const seedFile = join(lndDir, 'seed_phrase.txt');
+        writeFileSync(seedFile, seedMnemonic!.join(' ') + '\n');
+        chmodSync(seedFile, 0o600);
+        process.stderr.write(`Seed phrase saved to ${seedFile} (chmod 600)\n`);
       }
     } else {
       process.stderr.write(`lncli create exited with code ${lncliExitCode}. Output captured above.\n`);
@@ -828,9 +833,13 @@ async function setupLitdNode(): Promise<LitdNodeInfo> {
     for (let i = 0; i < 24; i += 6) {
       instructions.push(`  ${seedMnemonic.slice(i, i + 6).join('  ')}`);
     }
+    const seedFile = join(lndDir, 'seed_phrase.txt');
     instructions.push('');
     instructions.push('!!! WRITE DOWN THESE 24 WORDS AND KEEP THEM SAFE !!!');
     instructions.push('!!! WITHOUT THE SEED, YOU CANNOT RECOVER YOUR FUNDS !!!');
+    instructions.push('');
+    instructions.push(`Seed saved to: ${seedFile} (chmod 600)`);
+    instructions.push('Once backed up, delete it:  shred -u ~/.lnd/seed_phrase.txt');
     instructions.push('');
     instructions.push('The wallet will auto-unlock on next start.');
     instructions.push('');
