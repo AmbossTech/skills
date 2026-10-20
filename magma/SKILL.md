@@ -57,10 +57,11 @@ On failure:
 - `--redirect-url <url>` — post-payment redirect URL
 - `--private-channel` — flag: open a private channel instead of a public one
 - `--rails-cluster-only` — flag: source liquidity only from Rails cluster nodes
+- `--accept-terms` — flag: the user agreed to the [Amboss Terms of Service](https://amboss.tech/terms) and [Privacy Policy](https://amboss.tech/privacy). Required without an API key. With an API key, only required if that account has not accepted them yet (the API error says so).
 
 ### Authentication
 
-Authentication is **optional**. The Magma API supports anonymous access — it auto-creates a temporary account.
+Authentication is **optional**. The Magma API supports anonymous access — it auto-creates a temporary account. Anonymous purchases always need `--accept-terms`.
 
 If the user has an Amboss API key, set it as an environment variable before invoking the script:
 
@@ -84,6 +85,7 @@ Keys can be generated at https://account.amboss.tech/settings/api-keys.
    - On `success: true`, present the `lightning_invoice` to the user and tell them to pay it with any Lightning wallet.
    - On `success: false`, surface the error `message` (do not surface stack traces or raw HTTP details).
 5. **Confirm before spending**: The user is about to pay real money. Always confirm the amount and node URI back to the user before running the script.
+6. **Get the user's agreement to the terms**: Magma requires accepting the [Amboss Terms of Service](https://amboss.tech/terms) and [Privacy Policy](https://amboss.tech/privacy). Show both links and ask the user to agree. Pass `--accept-terms` only after they explicitly say yes — never accept on their behalf. If they decline, do not buy.
 
 ## Example user flow
 
@@ -91,11 +93,14 @@ Keys can be generated at https://account.amboss.tech/settings/api-keys.
 User: Buy $10 of Lightning liquidity for my node 024ae5a5f0b01850983009489ca89c85...@12.34.56.78:9735
 
 Claude: I'm about to purchase $10.00 (1000 cents) of inbound Lightning
-        liquidity for node 024ae5a5...@12.34.56.78:9735. Confirm to proceed?
+        liquidity for node 024ae5a5...@12.34.56.78:9735. Magma requires
+        that you agree to the Amboss Terms of Service
+        (https://amboss.tech/terms) and Privacy Policy
+        (https://amboss.tech/privacy). Do you agree, and confirm to proceed?
 
 User: yes
 
-Claude: [runs npx -y tsx scripts/buy_liquidity.ts --connection-uri 024ae5a5...@12.34.56.78:9735 --usd-cents 1000]
+Claude: [runs npx -y tsx scripts/buy_liquidity.ts --connection-uri 024ae5a5...@12.34.56.78:9735 --usd-cents 1000 --accept-terms]
 
 Claude: Here is your Lightning invoice. Pay it with any Lightning wallet
         to complete the purchase. The inbound channel will open once the
