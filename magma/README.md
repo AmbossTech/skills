@@ -32,7 +32,7 @@ Claude will:
 
 Authentication is optional — Magma supports anonymous access (the API auto-creates a temporary session account).
 
-Every purchase requires accepting the [Amboss Terms of Service](https://amboss.tech/terms) and [Privacy Policy](https://amboss.tech/privacy). The skill asks you first and then passes `--accept-terms`. Anonymous purchases always need it; with an API key it's only needed until your account has accepted once.
+Placing an order means accepting the [Amboss Terms of Service](https://amboss.tech/terms) and [Privacy Policy](https://amboss.tech/privacy). The skill shows you both links before it buys.
 
 To use an existing Amboss account, set the API key in your environment before launching Claude:
 

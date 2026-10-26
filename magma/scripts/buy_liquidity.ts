@@ -8,10 +8,6 @@
  * Requires Node.js >= 18 (uses built-in fetch).
  * `tsx` is auto-fetched by npx — no `npm install` needed.
  *
- * Pass --accept-terms only after the user agreed to the Amboss Terms of
- * Service and Privacy Policy. Buying without an API key always needs it;
- * with an API key it is only needed if that account has not accepted yet.
- *
  * Environment variables:
  *   MAGMA_API_KEY            Optional. Amboss Magma API key. If unset,
  *                            the API creates a temporary anonymous account.
@@ -32,8 +28,6 @@ const CLIENT_NAME = 'magma-skill';
 const CLIENT_VERSION = '1.0.0';
 const MIN_USD_CENTS = 500;
 const PUBKEY_PATTERN = /^[0-9a-f]{66}(@[\w.\-]+:\d{1,5})?$/i;
-const TERMS_URL = 'https://amboss.tech/terms';
-const PRIVACY_URL = 'https://amboss.tech/privacy';
 
 const BUY_LIQUIDITY_MUTATION = `
   mutation BuyLiquidity($input: LiquidityOrderInput!) {
@@ -74,7 +68,6 @@ interface LiquidityOrderInput {
   connection_uri: string;
   usd_cents: string;
   redirect_url?: string;
-  accept_legal_documents?: boolean;
   options: {
     private: boolean;
     rails_cluster_only: boolean;
@@ -241,8 +234,7 @@ async function callApi(
 function printUsageAndExit(): never {
   process.stderr.write(
     `Usage: buy_liquidity.ts --connection-uri <pubkey[@host:port]> --usd-cents <int> ` +
-      `[--redirect-url <url>] [--private-channel] [--rails-cluster-only] ` +
-      `[--accept-terms]\n`
+      `[--redirect-url <url>] [--private-channel] [--rails-cluster-only]\n`
   );
   process.exit(1);
 }
@@ -257,7 +249,6 @@ async function main(): Promise<void> {
         'redirect-url': { type: 'string' },
         'private-channel': { type: 'boolean', default: false },
         'rails-cluster-only': { type: 'boolean', default: false },
-        'accept-terms': { type: 'boolean', default: false },
         help: { type: 'boolean', short: 'h', default: false },
       },
       strict: true,
@@ -288,17 +279,6 @@ async function main(): Promise<void> {
 
   const endpoint = process.env.MAGMA_GRAPHQL_ENDPOINT ?? DEFAULT_ENDPOINT;
   const apiKey = process.env.MAGMA_API_KEY;
-  const acceptTerms = Boolean(values['accept-terms']);
-
-  if (!apiKey && !acceptTerms) {
-    emitError(
-      'VALIDATION_ERROR',
-      `Buying without an API key requires accepting the Amboss Terms of Service ` +
-        `(${TERMS_URL}) and Privacy Policy (${PRIVACY_URL}). ` +
-        `Pass --accept-terms once the user has agreed to both.`,
-      { exitCode: 1 }
-    );
-  }
 
   const input: LiquidityOrderInput = {
     connection_uri: connectionUri,
@@ -310,7 +290,6 @@ async function main(): Promise<void> {
   };
   const redirectUrl = values['redirect-url'] as string | undefined;
   if (redirectUrl) input.redirect_url = redirectUrl;
-  if (acceptTerms) input.accept_legal_documents = true;
 
   const data = await callApi(endpoint, apiKey, { input });
 
