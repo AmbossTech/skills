@@ -60,9 +60,7 @@ On failure:
 
 ### Authentication
 
-Authentication is **optional**. The Magma API supports anonymous access — it auto-creates a temporary account.
-
-If the user has an Amboss API key, set it as an environment variable before invoking the script:
+Authentication is **required**. Magma only accepts orders from accounts that have accepted the [Amboss Terms of Service](https://amboss.tech/terms) and [Privacy Policy](https://amboss.tech/privacy). The user accepts them once by logging in at https://magma.amboss.tech/settings/account, then creates an API key and sets it before invoking the script:
 
 ```bash
 export MAGMA_API_KEY=their_api_key_here
@@ -84,7 +82,7 @@ Keys can be generated at https://account.amboss.tech/settings/api-keys.
    - On `success: true`, present the `lightning_invoice` to the user and tell them to pay it with any Lightning wallet.
    - On `success: false`, surface the error `message` (do not surface stack traces or raw HTTP details).
 5. **Confirm before spending**: The user is about to pay real money. Always confirm the amount and node URI back to the user before running the script.
-6. **Share the terms**: Placing an order means accepting the [Amboss Terms of Service](https://amboss.tech/terms) and [Privacy Policy](https://amboss.tech/privacy) - Magma records that acceptance with the order. Show both links in the confirmation and only run the script once the user agrees. If they decline, do not buy.
+6. **Missing key or terms**: If `MAGMA_API_KEY` is not set, or the API says the terms are not accepted, tell the user to log in at https://magma.amboss.tech/settings/account, accept the [Amboss Terms of Service](https://amboss.tech/terms) and [Privacy Policy](https://amboss.tech/privacy) there, and create an API key. Never accept the terms on their behalf.
 
 ## Example user flow
 
@@ -92,10 +90,7 @@ Keys can be generated at https://account.amboss.tech/settings/api-keys.
 User: Buy $10 of Lightning liquidity for my node 024ae5a5f0b01850983009489ca89c85...@12.34.56.78:9735
 
 Claude: I'm about to purchase $10.00 (1000 cents) of inbound Lightning
-        liquidity for node 024ae5a5...@12.34.56.78:9735. Placing the order
-        means you agree to the Amboss Terms of Service
-        (https://amboss.tech/terms) and Privacy Policy
-        (https://amboss.tech/privacy). Do you agree, and confirm to proceed?
+        liquidity for node 024ae5a5...@12.34.56.78:9735. Confirm to proceed?
 
 User: yes
 

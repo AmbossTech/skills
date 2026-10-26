@@ -28,13 +28,9 @@ Claude will:
 
 <hr>
 
-## Configuration (Optional)
+## Configuration
 
-Authentication is optional — Magma supports anonymous access (the API auto-creates a temporary session account).
-
-Placing an order means accepting the [Amboss Terms of Service](https://amboss.tech/terms) and [Privacy Policy](https://amboss.tech/privacy). The skill shows you both links before it buys.
-
-To use an existing Amboss account, set the API key in your environment before launching Claude:
+Magma only accepts orders from accounts that have accepted the [Amboss Terms of Service](https://amboss.tech/terms) and [Privacy Policy](https://amboss.tech/privacy). Log in at https://magma.amboss.tech/settings/account and accept them once, then set your API key in your environment before launching Claude:
 
 ```bash
 export MAGMA_API_KEY=your_api_key_here
@@ -44,7 +40,7 @@ API keys can be generated at https://account.amboss.tech/settings/api-keys.
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `MAGMA_API_KEY` | No | — | Amboss Magma API key. Falls back to anonymous access if unset. |
+| `MAGMA_API_KEY` | Yes | — | Amboss API key of an account that has accepted the Terms of Service and Privacy Policy. |
 | `MAGMA_GRAPHQL_ENDPOINT` | No | `https://magma.amboss.tech/graphql` | Override the Magma GraphQL endpoint. |
 
 ## Related

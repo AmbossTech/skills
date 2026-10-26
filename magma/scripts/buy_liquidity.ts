@@ -9,8 +9,9 @@
  * `tsx` is auto-fetched by npx — no `npm install` needed.
  *
  * Environment variables:
- *   MAGMA_API_KEY            Optional. Amboss Magma API key. If unset,
- *                            the API creates a temporary anonymous account.
+ *   MAGMA_API_KEY            Required. Amboss API key of an account that has
+ *                            accepted the Terms of Service and Privacy Policy
+ *                            at https://magma.amboss.tech/settings/account.
  *   MAGMA_GRAPHQL_ENDPOINT   Optional. Defaults to the production endpoint.
  *
  * Exit codes:
@@ -154,7 +155,7 @@ function isRetriable(status: number | null, err: unknown): boolean {
 
 function clientErrorMessage(status: number, bodyText: string): string {
   const messages: Record<number, string> = {
-    401: 'Authentication failed. If you set MAGMA_API_KEY, verify it at https://account.amboss.tech/settings/api-keys. Unset it to use anonymous access.',
+    401: 'Authentication failed. Verify MAGMA_API_KEY at https://account.amboss.tech/settings/api-keys.',
     403: 'Access forbidden. Your API key may lack the required permissions.',
     404: 'API endpoint not found. Check MAGMA_GRAPHQL_ENDPOINT.',
     429: 'Rate limit exceeded. Try again shortly.',
@@ -279,6 +280,17 @@ async function main(): Promise<void> {
 
   const endpoint = process.env.MAGMA_GRAPHQL_ENDPOINT ?? DEFAULT_ENDPOINT;
   const apiKey = process.env.MAGMA_API_KEY;
+
+  if (!apiKey) {
+    emitError(
+      'VALIDATION_ERROR',
+      'MAGMA_API_KEY is required. Magma only accepts orders from accounts that ' +
+        'accepted the Amboss Terms of Service and Privacy Policy: log in at ' +
+        'https://magma.amboss.tech/settings/account to accept them, then create an API key at ' +
+        'https://account.amboss.tech/settings/api-keys.',
+      { exitCode: 1 }
+    );
+  }
 
   const input: LiquidityOrderInput = {
     connection_uri: connectionUri,
