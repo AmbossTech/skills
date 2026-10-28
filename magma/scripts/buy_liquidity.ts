@@ -32,10 +32,12 @@ const PUBKEY_PATTERN = /^[0-9a-f]{66}(@[\w.\-]+:\d{1,5})?$/i;
 
 const BUY_LIQUIDITY_MUTATION = `
   mutation BuyLiquidity($input: LiquidityOrderInput!) {
-    liquidity {
-      buy(input: $input) {
-        payment {
-          lightning_invoice
+    account {
+      liquidity {
+        buy(input: $input) {
+          payment {
+            lightning_invoice
+          }
         }
       }
     }
@@ -76,10 +78,12 @@ interface LiquidityOrderInput {
 }
 
 interface BuyLiquidityResponse {
-  liquidity: {
-    buy: {
-      payment: {
-        lightning_invoice: string;
+  account: {
+    liquidity: {
+      buy: {
+        payment: {
+          lightning_invoice: string;
+        };
       };
     };
   };
@@ -305,7 +309,7 @@ async function main(): Promise<void> {
 
   const data = await callApi(endpoint, apiKey, { input });
 
-  const invoice = data?.liquidity?.buy?.payment?.lightning_invoice;
+  const invoice = data?.account?.liquidity?.buy?.payment?.lightning_invoice;
   if (!invoice) {
     emitError('UNKNOWN_ERROR', 'Magma API response missing lightning_invoice', {
       details: { raw: data as unknown as Record<string, unknown> },
