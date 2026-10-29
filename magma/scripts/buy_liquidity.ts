@@ -10,8 +10,8 @@
  *
  * Environment variables:
  *   MAGMA_API_KEY            Required. Amboss API key of an account that has
- *                            accepted the Terms of Service and Privacy Policy
- *                            at https://magma.amboss.tech/settings/account.
+ *                            accepted the Terms of Service at
+ *                            https://magma.amboss.tech/settings/account.
  *   MAGMA_GRAPHQL_ENDPOINT   Optional. Defaults to the production endpoint.
  *
  * Exit codes:
@@ -289,7 +289,7 @@ async function main(): Promise<void> {
     emitError(
       'VALIDATION_ERROR',
       'MAGMA_API_KEY is required. Magma only accepts orders from accounts that ' +
-        'accepted the Amboss Terms of Service and Privacy Policy: log in at ' +
+        'accepted the Amboss Terms of Service: log in at ' +
         'https://magma.amboss.tech/settings/account to accept them, then create an API key at ' +
         'https://account.amboss.tech/settings/api-keys.',
       { exitCode: 1 }

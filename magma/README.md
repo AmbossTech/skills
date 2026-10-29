@@ -30,7 +30,7 @@ Claude will:
 
 ## Configuration
 
-Magma only accepts orders from accounts that have accepted the [Amboss Terms of Service](https://amboss.tech/terms) and [Privacy Policy](https://amboss.tech/privacy). Log in at https://magma.amboss.tech/settings/account and accept them once, then set your API key in your environment before launching Claude:
+Magma only accepts orders from accounts that have accepted the [Amboss Terms of Service](https://amboss.tech/terms). Log in at https://magma.amboss.tech/settings/account and accept them once, then set your API key in your environment before launching Claude:
 
 ```bash
 export MAGMA_API_KEY=your_api_key_here
@@ -40,7 +40,7 @@ API keys can be generated at https://account.amboss.tech/settings/api-keys.
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `MAGMA_API_KEY` | Yes | — | Amboss API key of an account that has accepted the Terms of Service and Privacy Policy. |
+| `MAGMA_API_KEY` | Yes | — | Amboss API key of an account that has accepted the Terms of Service. |
 | `MAGMA_GRAPHQL_ENDPOINT` | No | `https://magma.amboss.tech/graphql` | Override the Magma GraphQL endpoint. |
 
 ## Related

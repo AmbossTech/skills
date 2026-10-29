@@ -60,7 +60,7 @@ On failure:
 
 ### Authentication
 
-Authentication is **required**. Magma only accepts orders from accounts that have accepted the [Amboss Terms of Service](https://amboss.tech/terms) and [Privacy Policy](https://amboss.tech/privacy). The user accepts them once by logging in at https://magma.amboss.tech/settings/account, then creates an API key and sets it before invoking the script:
+Authentication is **required**. Magma only accepts orders from accounts that have accepted the [Amboss Terms of Service](https://amboss.tech/terms). The user accepts them once by logging in at https://magma.amboss.tech/settings/account, then creates an API key and sets it before invoking the script:
 
 ```bash
 export MAGMA_API_KEY=their_api_key_here
@@ -82,7 +82,7 @@ Keys can be generated at https://account.amboss.tech/settings/api-keys.
    - On `success: true`, present the `lightning_invoice` to the user and tell them to pay it with any Lightning wallet.
    - On `success: false`, surface the error `message` (do not surface stack traces or raw HTTP details).
 5. **Confirm before spending**: The user is about to pay real money. Always confirm the amount and node URI back to the user before running the script.
-6. **Missing key or terms**: If `MAGMA_API_KEY` is not set, or the API says the terms are not accepted, tell the user to log in at https://magma.amboss.tech/settings/account, accept the [Amboss Terms of Service](https://amboss.tech/terms) and [Privacy Policy](https://amboss.tech/privacy) there, and create an API key. Never accept the terms on their behalf.
+6. **Missing key or terms**: If `MAGMA_API_KEY` is not set, or the API says the terms are not accepted, tell the user to log in at https://magma.amboss.tech/settings/account, accept the [Amboss Terms of Service](https://amboss.tech/terms) there, and create an API key. Never accept the terms on their behalf.
 
 ## Example user flow
 
