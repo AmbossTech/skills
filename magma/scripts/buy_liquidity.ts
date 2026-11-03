@@ -181,7 +181,7 @@ const sleep = (ms: number): Promise<void> =>
 
 async function callApi(
   endpoint: string,
-  apiKey: string | undefined,
+  apiKey: string,
   variables: { input: LiquidityOrderInput },
   maxRetries = 2
 ): Promise<BuyLiquidityResponse> {
@@ -189,8 +189,8 @@ async function callApi(
     'Content-Type': 'application/json',
     'apollographql-client-name': CLIENT_NAME,
     'apollographql-client-version': CLIENT_VERSION,
+    Authorization: `Bearer ${apiKey}`,
   };
-  if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
 
   const body = JSON.stringify({ query: BUY_LIQUIDITY_MUTATION, variables });
 
